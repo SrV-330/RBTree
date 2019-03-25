@@ -53,11 +53,11 @@ ptn insertTreeNode(ptn* p){
 		movep=GETP(move);
 		if(move->value<value){
 			movep=move;
-			move=move->leftChild;
+			move=move->rightChild;
 			
 		}else{
 			movep=move;
-			move=move->rightChild;
+			move=move->leftChild;
 			
 		}
 	}
@@ -74,15 +74,15 @@ ptn insertTreeNode(ptn* p){
 		}else{
 			movep->leftChild=n;
 		}
+		
 	}
 	return n;
 	
 }
 
 void rightRotate(ptn* curr){
-	
+	 
 	if(ISN((*curr))||!GETR((*curr))) return;
-	printf("a");
 	ptn newNode=(*curr)->rightChild;
 	ptn newNodeLeftChild=newNode->leftChild;
 	
@@ -95,7 +95,6 @@ void rightRotate(ptn* curr){
 	(*curr)->parent=newNode;
 	newNode->leftChild=(*curr);
 	(*curr)=newNode;
-	
 	
 	
 }
@@ -151,7 +150,7 @@ main(){
 	ptn n;
 	n=insertTreeNode(proot);
 	root=ISN(n)?NULL:n;
-	proot=ISN(n)?NULL:&n;
+	proot=ISN(root)?NULL:&root;
 	while(n!=NULL){
 		n=insertTreeNode(proot);
 	}
