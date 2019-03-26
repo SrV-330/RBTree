@@ -3,6 +3,12 @@
 #include<stdlib.h>
 #include<math.h>
 #include<string.h>
+/**
+*author:SrV-330 
+*title:RBTree
+*time:2019-03-26 22:12:28
+*ps:can not typing Chinese??????
+*/ 
 typedef	struct TreeNode{
 	struct TreeNode* parent;
 	struct TreeNode* leftChild;
@@ -53,11 +59,11 @@ ptn insertTreeNode(ptn* p){
 		movep=GETP(move);
 		if(move->value<value){
 			movep=move;
-			move=move->rightChild;
+			move=move->leftChild;
 			
 		}else{
 			movep=move;
-			move=move->leftChild;
+			move=move->rightChild;
 			
 		}
 	}
@@ -74,15 +80,15 @@ ptn insertTreeNode(ptn* p){
 		}else{
 			movep->leftChild=n;
 		}
-		
 	}
 	return n;
 	
 }
 
 void rightRotate(ptn* curr){
-	 
+	
 	if(ISN((*curr))||!GETR((*curr))) return;
+	printf("a");
 	ptn newNode=(*curr)->rightChild;
 	ptn newNodeLeftChild=newNode->leftChild;
 	
@@ -95,6 +101,7 @@ void rightRotate(ptn* curr){
 	(*curr)->parent=newNode;
 	newNode->leftChild=(*curr);
 	(*curr)=newNode;
+	
 	
 	
 }
@@ -143,6 +150,31 @@ void printTreeNode(tn* root,int deep){
 	
 	printTreeNode(root->leftChild,deep);
 }
+void fixup(ptn* p){
+	if(!p) return;
+	if(!GETP((*p))){
+		(*p)->color=BLACK;	//*p is root 
+	}else if(ISBLACK(GETP((*p)))){
+		
+		return; //parent node is black 
+	}else if(ISRED(GETP((*p)))&&ISRED(GETU((*p)))){
+		
+		GETP((*p))->color=BLACK; // parent node is red
+		GETU((*p))->color=BLACK; // uncle node is red
+		 fixup(GETGP((*p)));	 // *p is left or right child
+	}else if(ISRED(GETP((*p)))&&ISBLACK(GETU((*p)))&&ISRC(GETP(*p),(*p))){ 
+		rightRotate((*p));		 //*p is rgiht child
+		(*p)=(*p)->leftChild;	 // parent node is red
+		fixup(p);				 // uncle node is black
+	}else if(ISRED(GETP((*p)))&&ISBLACK(GETU((*p)))&&ISLC(GETP(*p),(*p))){
+		leftRotate(GETP(*p));	 //*p is left child
+								 // parent node is red
+						 		 // uncle node is black
+	}else{
+		return;
+	}
+	
+}
 main(){
 	
 	ptn* proot=NULL;
@@ -150,7 +182,7 @@ main(){
 	ptn n;
 	n=insertTreeNode(proot);
 	root=ISN(n)?NULL:n;
-	proot=ISN(root)?NULL:&root;
+	proot=ISN(n)?NULL:&n;
 	while(n!=NULL){
 		n=insertTreeNode(proot);
 	}
