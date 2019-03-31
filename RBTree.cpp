@@ -20,17 +20,18 @@ typedef	struct TreeNode{
 #define BLACK 2
 #define null NULL
 #define nil NULL
+#define ISN(p) (p==NULL?true:false)
 #define ISRED(p) (ISN(p)?false:p->color==1?true:false)
 #define ISBLACK(p) (ISN(p)?false:p->color==2?true:false)
 #define ISRC(p,c) (ISN(p)?false:p->rightChild==c?true:false)
 #define ISLC(p,c) (ISN(p)?false:p->leftChild==c?true:false)
-#define ISN(p) (p==NULL?true:false)
 #define GETP(p) (p==NULL?NULL:p->parent)
 #define GETL(p) (p==NULL?NULL:p->leftChild)
 #define GETR(p) (p==NULL?NULL:p->rightChild)
 #define GETGP(p) (ISN(p)||ISN(p->parent)?NULL:p->parent->parent)
-#define GETU(p) (ISN(GETGP(p))?NULL:ISLC(GETGP(p)->leftChild,p)?GETGP(p)->rightChild:GETGP(p)->rightChild)
+#define GETU(p) (ISN(GETGP(p))?NULL:ISLC(GETGP(p)->leftChild,GETP(p))?GETGP(p)->rightChild:GETGP(p)->leftChild)
 void printTreeNode(tn* root,int deep);
+void fixup(ptn* p);
 ptn createTreeNode(int value){
 	ptn n;
 	n=(ptn)malloc(sizeof(tn));
@@ -59,11 +60,11 @@ ptn insertTreeNode(ptn* p){
 		movep=GETP(move);
 		if(move->value<value){
 			movep=move;
-			move=move->leftChild;
+			move=move->rightChild;
 			
 		}else{
 			movep=move;
-			move=move->rightChild;
+			move=move->leftChild;
 			
 		}
 	}
@@ -81,8 +82,8 @@ ptn insertTreeNode(ptn* p){
 			movep->leftChild=n;
 		}
 	}
-		
-	fixup(&p);
+	printf("v:%d c:%d\n",n->value,n->color);
+	fixup(&n);
 	
 	return n;
 	
@@ -90,7 +91,7 @@ ptn insertTreeNode(ptn* p){
 
 void leftRotate(ptn* curr){
 	
-	if(ISN((*curr))||!GETR((*curr))) return;
+	if(ISN((*curr))||ISN(GETR((*curr)))) return;
 	printf("a");
 	ptn newNode=(*curr)->rightChild;
 	ptn newNodeLeftChild=newNode->leftChild;
@@ -104,7 +105,7 @@ void leftRotate(ptn* curr){
 	(*curr)->parent=newNode;
 	newNode->leftChild=(*curr);
 	(*curr)=newNode;
-	
+	printf("b");
 	
 	
 }
@@ -149,7 +150,15 @@ void printTreeNode(tn* root,int deep){
 		printf("  ");
 	}
 	
-	printf("%d\n",root->value);	
+	printf("value:%d ",root->value);
+	if(root->color==RED){
+		printf("color:%s\n","RED");
+	}else if(root->color==BLACK	){
+		printf("color:%s\n","BLACK");	
+	}else{
+		printf("color:%s\n","NULL");
+	}
+		
 	
 	printTreeNode(root->leftChild,deep);
 }
@@ -157,41 +166,52 @@ void fixup(ptn* p){
 	if(!p) return;
 	if(!GETP((*p))){
 		(*p)->color=BLACK;	//*p is root 
+		printf("c1\n");
 	}else if(ISBLACK(GETP((*p)))){
-		
+		printf("c2\n");
 		return; //parent node is black 
 	}else if(ISRED(GETP((*p)))&&ISRED(GETU((*p)))){
-		
+		printf("c3\n");
 		GETP((*p))->color=BLACK; // parent node is red
 		GETU((*p))->color=BLACK; // uncle node is red
 		GETGP((*p))->color=RED;  // grandpa node is black
-		 fixup(GETGP((*p)));	 // *p is left or right child
+		ptn t=GETGP((*p));
+		 fixup(&t);	 // *p is left or right child
 	}else if(ISRED(GETP((*p)))&&(ISBLACK(GETU((*p)))||ISN(GETU((*p))))
-				&&ISRC(GETP(*p),(*p))&&ISLC(GETGP((*p)),GETP((*p)))){ 
-		leftRotate((*p));		 //*p is rgiht child
+				&&ISRC(GETP((*p)),(*p))
+				&&ISLC(GETGP((*p)),GETP((*p)))){ 
+				printf("c4\n");
+		leftRotate(p);		 //*p is rgiht child
 		(*p)=(*p)->leftChild;	 // parent node is red
 		fixup(p);				 // uncle node is black	
 	}else if(ISRED(GETP((*p)))&&(ISBLACK(GETU((*p)))||ISN(GETU((*p))))
-				&&ISLC(GETP(*p),(*p))&&ISRC(GETGP((*p)),GETP((*p)))){
-		rightRotate((*p));
+				&&ISLC(GETP((*p)),(*p))&&ISRC(GETGP((*p)),GETP((*p)))){
+					printf("c5\n");
+		rightRotate(p);
 		(*p)=(*p)->rightChild;
 		fixup(p);
 	
 	}else if(ISRED(GETP((*p)))&&(ISBLACK(GETU((*p)))||ISN(GETU((*p))))
-				&&ISLC(GETP(*p),(*p))&&ISLC(GETGP((*p)),GETP((*p)))){
-		rightRotate(GETGP(*p));	 //*p is left child
-		(*p)->color=BLACK;		 // parent node is red
-		(*p)->leftChild->color=RED;	 // uncle node is black
+				&&ISLC(GETP((*p)),(*p))&&ISLC(GETGP((*p)),GETP((*p)))){
+					printf("c6\n");
+		ptn t=GETGP((*p));
+		rightRotate(&t);	 //*p is left child
+		t->color=BLACK;		 // parent node is red
+		t->leftChild->color=RED;	 // uncle node is black
 	}else if(ISRED(GETP((*p)))&&(ISBLACK(GETU((*p)))||ISN(GETU((*p))))
-				&&ISRC(GETP(*p),(*p))&&ISRC(GETGP((*p)),GETP((*p)))){
-		leftRotate(GETGP((*p)));
-		(*p)->color=BLACK;
-		(*p)->rightChild->color=RED;
+				&&ISRC(GETP((*p)),(*p))&&ISRC(GETGP((*p)),GETP((*p)))){
+					printf("c7\n");
+		ptn t=GETGP((*p));
+		leftRotate(&t);
+		t->color=BLACK;
+		t->rightChild->color=RED;
+		printf("c7-1\n");
 	}else{
 		return;
 	}
 	
 }
+
 main(){
 	
 	ptn* proot=NULL;
@@ -201,17 +221,24 @@ main(){
 	root=ISN(n)?NULL:n;
 	proot=ISN(n)?NULL:&n;
 	while(n!=NULL){
+		
 		n=insertTreeNode(proot);
+		ptn t=n;
+		while(t){
+			root=t;
+			proot=&root;
+			t=t->parent;
+		}
 	}
 	printTreeNode(root,0);
 	
-	rightRotate(proot);
+	//rightRotate(proot);
 	
-	printTreeNode(root,0);
+	//printTreeNode(root,0);
 	
-	leftRotate(proot);
+	//leftRotate(proot);
 	
-	printTreeNode(root,0);
+	//printTreeNode(root,0);
 	dropTreeNode(root);
 	
 	
