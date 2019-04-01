@@ -92,7 +92,6 @@ ptn insertTreeNode(ptn* p){
 void leftRotate(ptn* curr){
 	
 	if(ISN((*curr))||ISN(GETR((*curr)))) return;
-	printf("a");
 	ptn newNode=(*curr)->rightChild;
 	ptn newNodeLeftChild=newNode->leftChild;
 	
@@ -100,12 +99,18 @@ void leftRotate(ptn* curr){
 	if(newNodeLeftChild!=NULL){
 		newNodeLeftChild->parent=(*curr);
 	}
+	
 	newNode->parent=(*curr)->parent;
 	(*curr)->rightChild=newNodeLeftChild;
 	(*curr)->parent=newNode;
 	newNode->leftChild=(*curr);
+	ptn gp=GETGP((*curr));
+	if(ISLC(gp,(*curr))){
+		gp->leftChild=newNode;
+	}else if(ISRC(gp,(*curr))){
+		gp->rightChild=newNode;
+	}
 	(*curr)=newNode;
-	printf("b");
 	
 	
 }
@@ -116,10 +121,17 @@ void rightRotate(tn** curr){
 	if(newNodeRightChild!=NULL){
 		newNodeRightChild->parent=(*curr);
 	}
+	
 	newNode->parent=(*curr)->parent;
 	(*curr)->leftChild=newNodeRightChild;
 	(*curr)->parent=newNode;
 	newNode->rightChild=(*curr);
+	ptn gp=GETGP((*curr));
+	if(ISLC(gp,(*curr))){
+		gp->leftChild=newNode;
+	}else if(ISRC(gp,(*curr))){
+		gp->rightChild=newNode;
+	}
 	(*curr)=newNode;
 }
 
@@ -198,6 +210,7 @@ void fixup(ptn* p){
 		rightRotate(&t);	 //*p is left child
 		t->color=BLACK;		 // parent node is red
 		t->leftChild->color=RED;	 // uncle node is black
+		t->rightChild->color=RED;
 	}else if(ISRED(GETP((*p)))&&(ISBLACK(GETU((*p)))||ISN(GETU((*p))))
 				&&ISRC(GETP((*p)),(*p))&&ISRC(GETGP((*p)),GETP((*p)))){
 					printf("c7\n");
@@ -205,13 +218,67 @@ void fixup(ptn* p){
 		leftRotate(&t);
 		t->color=BLACK;
 		t->rightChild->color=RED;
-		printf("c7-1\n");
+		t->leftChild->color=RED;
 	}else{
 		return;
 	}
 	
 }
 
+
+void removeTreeNode(int value,ptn* p){
+	if(ISN((*p))) return;
+	ptn move=(*p);
+	ptn movep=(*p);
+	
+	while(move){
+		if(move->value<value){
+			
+			move=move->rightChild;
+		}else if(move->value>value){
+			
+			
+			move=move->leftChild;
+		}else{
+			break;
+		}
+	}
+	
+	if(!move) return;
+	
+	ptn taget=move;
+	if(taget->rightChild){
+		move=taget->rightChild;
+		movep=move;
+		while(move){
+			movep=move;
+			move=move->leftChild;
+		}
+		move=movep->rightChild;	
+	
+	}else{
+		move=taget->leftChild;
+		movep=move;
+		while(move){
+			movep=move;
+			move=move->rightChild;
+		}
+		move=movep->leftChild;	
+	}
+	
+	
+	if(ISBLACK(movep)&&ISBLACK(move)){
+		
+	}else{
+		taget->value=movep->value;
+		move->parent=movep->parent;
+	}
+	
+	
+	
+	
+	
+}
 main(){
 	
 	ptn* proot=NULL;
@@ -221,24 +288,18 @@ main(){
 	root=ISN(n)?NULL:n;
 	proot=ISN(n)?NULL:&n;
 	while(n!=NULL){
-		
-		n=insertTreeNode(proot);
 		ptn t=n;
 		while(t){
 			root=t;
 			proot=&root;
 			t=t->parent;
 		}
+		
+		n=insertTreeNode(proot);
+		
 	}
 	printTreeNode(root,0);
-	
-	//rightRotate(proot);
-	
-	//printTreeNode(root,0);
-	
-	//leftRotate(proot);
-	
-	//printTreeNode(root,0);
+
 	dropTreeNode(root);
 	
 	
