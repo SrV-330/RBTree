@@ -28,6 +28,7 @@ typedef	struct TreeNode{
 #define GETP(p) (p==NULL?NULL:p->parent)
 #define GETL(p) (p==NULL?NULL:p->leftChild)
 #define GETR(p) (p==NULL?NULL:p->rightChild)
+#define GETB(p) (p==NULL?NULL:GETP(p)==NULL?NULL:ISLC(GETP(p),p)?GETP(p)->rightChild:GETP(p)->leftChild)
 #define GETGP(p) (ISN(p)||ISN(p->parent)?NULL:p->parent->parent)
 #define GETU(p) (ISN(GETGP(p))?NULL:ISLC(GETGP(p)->leftChild,GETP(p))?GETGP(p)->rightChild:GETGP(p)->leftChild)
 void printTreeNode(tn* root,int deep);
@@ -224,7 +225,68 @@ void fixup(ptn* p){
 	}
 	
 }
-
+void doRemove(ptn node){
+	if(!node->parent) return;
+		ptn n=node;
+		ptn s=GETB(n);
+		ptn sl=GETL(s);
+		ptn sr=GETR(s);
+		ptn pr=GETP(n);
+		
+		if(ISRED(pr)){
+			pr->color=RED;
+			s->color=BLACK;
+			ptn t=pr;
+			if(ISLC(pr,s)){
+				leftRotate(t);
+			}else{
+				
+				rightRotate(t);
+			}
+			
+		}
+		s=GETB(n);
+		sl=GETL(s);
+		sr=GETR(s);
+		pr=GETP(n);
+		if(ISBLACK(pr)&&ISBLACK(s)&&ISBLACK(sl)&&ISBLACK(sr)&&ISBLACK(pr)){
+			s->color=RED;
+			if(pr->parent==NULL) return;
+		}else if(ISRED(pr)&&ISBLACK(s)&&ISBLACK(sl)&&ISBLACK(sr)&&ISBLACK(pr)){
+				s->color=RED;
+				pr->color=BLACK;
+			
+		}else if(ISBLACK(s)&&ISRED(sl)&&ISBLACK(sr)&&ISLC(pr,n)){
+			s->color=RED;
+			sl->color=BLACK;
+			ptn t=s;
+			rightRotate(t);
+		}else if(ISBLACK(s)&&ISRED(sl)&&ISBLACK(sr)&&ISRC(pr,n)){
+			s->color=RED;
+			sr->color=BLACK;
+			ptn t=s;
+			leftRotate(t);
+		}
+		
+		s=GETB(n);
+		sl=GETL(s);
+		sr=GETR(s);
+		pr=GETP(n);
+		
+		s->color=pr->color;
+		pr->color=BLACK;
+		ptn t=pr;
+		if(ISLC(pr,n)){
+			sr->color=BLACK;
+			leftRotate(t);
+		}else{
+			
+			sl->color=BLACK;
+			rightRotate(t);
+		}
+		
+		
+}
 
 void removeTreeNode(int value,ptn* p){
 	if(ISN((*p))) return;
@@ -267,12 +329,32 @@ void removeTreeNode(int value,ptn* p){
 	}
 	
 	
-	if(ISBLACK(movep)&&ISBLACK(move)){
+	
 		
-	}else{
-		taget->value=movep->value;
-		move->parent=movep->parent;
+		
+		
+	
+	taget->value=movep->value;
+	move->parent=movep->parent;
+	move->color=BLACK;
+	ptn movepParent=GETP(movep);
+	if(movepParent){
+		if(ISLC(movepParent,movep)){
+			movepParent->leftChild=move;
+		}else{
+			
+			movepParent->rightChild=move;
+		}
 	}
+	
+	if(ISBLACK(movep)&&ISBLACK(move)){
+		doRemove(move);
+	}
+	
+	dropTreeNode(movep);
+		
+		
+	
 	
 	
 	
